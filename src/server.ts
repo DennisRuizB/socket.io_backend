@@ -12,6 +12,7 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import http from 'http';
 import { Server } from 'socket.io';
 import { verifyAccessToken } from './modules/auth/jwt.js';
+import { ALL } from 'dns';
 
 dotenv.config(); // Cargamos las variables de entorno desde el archivo .env
 
@@ -78,7 +79,7 @@ const CHAT_PORT = process.env.CHAT_PORT || 3001;
 const chatServer = http.createServer();
 
 // Configurar Socket.IO para el chat con CORS
-const chatIO = new Server(chatServer, {
+export const chatIO = new Server(chatServer, { //chatIO es una instancia del servidor de Socket.IO
     cors: {
         origin: '*', // Permitir cualquier origen (ajustar en producción)
         methods: ['GET', 'POST'],
@@ -110,6 +111,12 @@ chatIO.on('connection', (socket) => {
             socket.disconnect();
         }
     });
+
+    //Manejar el evento de logearse para enviarlo a todos
+    socket.on('login_emmit', (name: string) =>{
+        socket.broadcast.emit('login_message', `El usuario ${name} se ha logueado`);
+        console.log(`El usuario ${name} se ha logueado`);
+    })
 
     // Manejar evento para unirse a una sala
     socket.on('join_room', (roomId: string) => {

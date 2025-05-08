@@ -7,6 +7,7 @@ import express, { Request, Response } from 'express';
 import { IUser } from './user_models.js';
 import { generateAccessToken } from '../auth/jwt.js';
 import { DEVELOP } from '../config/config.js';
+import { chatIO } from '../../server.js';
 
 export const saveMethodHandler = async (req: Request, res: Response) => {
     try {
@@ -61,12 +62,16 @@ export const login = async (req: Request, res: Response) => {
     try {
         const email = req.body.email;
         const password = req.body.password;
-        const user = await loginUser(email, password);
+        const user = await loginUser(email, password) as IUser | null;
         if (!user) {
             return res.status(401).json({ message: "invalid credentials"});
         }
 
         const accessToken = generateAccessToken(user as IUser);
+
+        // Emitir el evento de login a través de Socket.IO
+        //chatIO.emit('login_emmit', user.name);
+
         return res.json({ user, accessToken });
     } catch (error:any){
         res.status(500).json({message: error.message});
